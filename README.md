@@ -1,2 +1,2 @@
 # DroneArduinoCode
-Teknisk Fysik Kandidat Projekt sopdrönare arduino kod
+Teknisk Fysik Kandidatprojekt sopdrönare arduino kod
