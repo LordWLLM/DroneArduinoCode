@@ -1,6 +1,15 @@
+#include <SingleWireSerial.h>
+
+SingleWireSerial mySerial(false);
+
 void setup() {
   // put your setup code here, to run once:
-  penis
+  Serial.begin(19200);
+  while(!Serial){
+    ;
+  }
+  Serial.println("goodnight moon");
+  mySerial.begin(19200);
 }
 
 void loop() {
