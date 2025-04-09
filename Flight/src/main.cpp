@@ -1,18 +1,24 @@
 #include <Arduino.h>
+#include <SingleWireSerial.h>
+
+SingleWireSerial mySerial(false);
 
 // put function declarations here:
 int myFunction(int, int);
 
-void setup() {
+void setup()
+{
   // put your setup code here, to run once:
   int result = myFunction(2, 3);
 }
 
-void loop() {
+void loop()
+{
   // put your main code here, to run repeatedly:
 }
 
 // put function definitions here:
-int myFunction(int x, int y) {
+int myFunction(int x, int y)
+{
   return x + y;
 }
