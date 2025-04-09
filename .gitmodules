@@ -1,0 +1,3 @@
+[submodule "Flight/lib/SingleWireSerial"]
+	path = Flight/lib/SingleWireSerial
+	url = https://github.com/felias-fogg/SingleWireSerial.git
