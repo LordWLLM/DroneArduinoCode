@@ -68,9 +68,10 @@ class Game(ShowBase):
         self.angle = Quat(1,0,0,0)
         self.omega = Vec3(0,0,0)
         self.rpms = [0,0,0,0]
+        self.localAcc = Vec3(0,0,0)
 
     def process(self,data):
-        #x, y, z, vx, vy, vx, ax, ay, az, magx, magy, magz, qw, qx, qy, qz, omegax, omegay, omegaz, M1, M2, M3, M4
+        #x, y, z, vx, vy, vx, ax, ay, az, magx, magy, magz, qw, qx, qy, qz, omegax, omegay, omegaz, localAccX, localAccY, localAccZ, M1, M2, M3, M4
         points = data.split(',')
         try:
             points = [float(el) for el in points]
@@ -82,7 +83,8 @@ class Game(ShowBase):
         self.magnet = toVec(points[9:12])
         self.angle = toQuat(points[12:16])
         self.omega = toVec(points[16:19])
-        self.rpms = points[19:23]
+        self.localAcc = toVec(points[19:22])
+        self.rpms = points[22:26]
 
     def updateText(self):
         for i, j in enumerate(['pos', 'vel', 'acc']):
