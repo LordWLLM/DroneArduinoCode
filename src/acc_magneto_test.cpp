@@ -35,14 +35,6 @@
 // #include <Adafruit_GFX.h>
 // #include <Adafruit_PCD8544.h>
 
-// Using NOKIA 5110 monochrome 84 x 48 pixel display
-// pin 9 - Serial clock out (SCLK)
-// pin 8 - Serial data out (DIN)
-// pin 7 - Data/Command select (D/C)
-// pin 5 - LCD chip select (CS)
-// pin 6 - LCD reset (RST)
-// Adafruit_PCD8544 display = Adafruit_PCD8544(9, 8, 7, 5, 6);
-
 // Define registers per MPU6050, Register Map and Descriptions, Rev 4.2, 08/19/2013 6 DOF Motion sensor fusion device
 // Invensense Inc., www.invensense.com
 // See also MPU-6050 Register Map and Descriptions, Revision 4.0, RM-MPU-6050A-00, 9/12/2012 for registers not listed in
@@ -236,7 +228,7 @@ enum Mrate
 // Specify sensor full scale
 int Gscale = GFS_250DPS;
 int Ascale = AFS_2G;
-uint8_t Mrate = MRT_15; //  15 Hz ODR
+uint8_t Mrate = MRT_75; //  15 Hz ODR
 float aRes, gRes, mRes; // scale resolutions per LSB for the sensors
 
 // Pin definitions
@@ -277,6 +269,7 @@ float eInt[3] = {0.0f, 0.0f, 0.0f};       // vector to hold integral error for M
 
 TinyGPSPlus gps;
 BluetoothSerial SerialBT;
+// #define SerialBT Serial
 
 void setup()
 {
@@ -313,21 +306,34 @@ void setup()
 
   if (c == 0x68 && e == 0x48 && f == 0x34 && g == 0x33) // WHO_AM_I should always be 0x68
   {
-    // Serial.println("MPU6050 is online...");
+    Serial.println("MPU6050 is online...");
 
     MPU6050SelfTest(SelfTest); // Start by performing self test and reporting values
-    // Serial.print("x-axis self test: acceleration trim within : "); Serial.print(SelfTest[0],1); Serial.println("% of factory value");
-    // Serial.print("y-axis self test: acceleration trim within : "); Serial.print(SelfTest[1],1); Serial.println("% of factory value");
-    // Serial.print("z-axis self test: acceleration trim within : "); Serial.print(SelfTest[2],1); Serial.println("% of factory value");
-    // Serial.print("x-axis self test: gyration trim within : "); Serial.print(SelfTest[3],1); Serial.println("% of factory value");
-    // Serial.print("y-axis self test: gyration trim within : "); Serial.print(SelfTest[4],1); Serial.println("% of factory value");
-    // Serial.print("z-axis self test: gyration trim within : "); Serial.print(SelfTest[5],1); Serial.println("% of factory value");
+    Serial.print("x-axis self test: acceleration trim within : ");
+    Serial.print(SelfTest[0], 1);
+    Serial.println("% of factory value");
+    Serial.print("y-axis self test: acceleration trim within : ");
+    Serial.print(SelfTest[1], 1);
+    Serial.println("% of factory value");
+    Serial.print("z-axis self test: acceleration trim within : ");
+    Serial.print(SelfTest[2], 1);
+    Serial.println("% of factory value");
+    Serial.print("x-axis self test: gyration trim within : ");
+    Serial.print(SelfTest[3], 1);
+    Serial.println("% of factory value");
+    Serial.print("y-axis self test: gyration trim within : ");
+    Serial.print(SelfTest[4], 1);
+    Serial.println("% of factory value");
+    Serial.print("z-axis self test: gyration trim within : ");
+    Serial.print(SelfTest[5], 1);
+    Serial.println("% of factory value");
 
     if (SelfTest[0] < 1.0f && SelfTest[1] < 1.0f && SelfTest[2] < 1.0f && SelfTest[3] < 1.0f && SelfTest[4] < 1.0f && SelfTest[5] < 1.0f)
     {
       calibrateMPU6050(gyroBias, accelBias); // Calibrate gyro and accelerometers, load biases in bias registers
 
-      initMPU6050(); // Serial.println("MPU6050 initialized for active data mode...."); // Initialize device for active mode read of acclerometer, gyroscope, and temperature
+      initMPU6050();
+      Serial.println("MPU6050 initialized for active data mode...."); // Initialize device for active mode read of acclerometer, gyroscope, and temperature
 
       if (selfTestHMC5883L())
       { // perform magnetometer self test
@@ -338,12 +344,12 @@ void setup()
         Serial.print(" HMC5883L failed self test!");
       }
       initHMC5883L(); // Initialize and configure magnetometer
-                      // Serial.println("HMC5X883L initialized for active data mode....");
+      Serial.println("HMC5X883L initialized for active data mode....");
     }
     else
     {
-      // Serial.print("Could not connect to MPU6050: 0x");
-      // Serial.println(c, HEX);
+      Serial.print("Could not connect to MPU6050: 0x");
+      Serial.println(c, HEX);
       while (1)
         ; // Loop forever if communication doesn't happen
     }
@@ -460,17 +466,13 @@ void loop()
    Serial.println("   milligauss");
    */
 
-  float GQT = q[0];
-  float GQX = q[1];
-  float GQY = q[2];
-  float GQZ = q[3];
-  float tx = 2.0f * (GQY * az - GQZ * ay);
-  float ty = 2.0f * (GQZ * ax - GQX * az);
-  float tz = 2.0f * (GQX * ay - GQY * ax);
+  float tx = 2.0f * (q[2] * az - q[3] * ay);
+  float ty = 2.0f * (q[3] * ax - q[1] * az);
+  float tz = 2.0f * (q[1] * ay - q[2] * ax);
 
-  float inAccX = ax + GQT * tx + (GQY * tz - GQZ * ty);
-  float inAccY = ay + GQT * ty + (GQZ * tx - GQX * tz);
-  float inAccZ = az + GQT * tz + (GQX * ty - GQY * tx);
+  float inAccX = ax + q[0] * tx + (q[2] * tz - q[3] * ty);
+  float inAccY = ay + q[0] * ty + (q[3] * tx - q[1] * tz);
+  float inAccZ = az + q[0] * tz + (q[1] * ty - q[2] * tx);
 
   //           0, 1, 2,    3,    4,    5,    6,    7,    8,   9,   10,   11,   12,   13, 14, 15,    16,   17,     18, 19, 20, 21, 22
   //          {X, Y, Z, VelX, VelY, VelZ, AccX, AccY, AccZ, MagX, MagY, MagZ,   QT,   QX,   QY,   QZ, GyroX, GyroY, GyroZ, M1, M2, M3, M4}
@@ -616,10 +618,6 @@ void readMagData(int16_t *destination)
   destination[0] = ((int16_t)rawData[0] << 8) | rawData[1];      // Turn the MSB and LSB into a signed 16-bit value
   destination[1] = ((int16_t)rawData[4] << 8) | rawData[5];
   destination[2] = ((int16_t)rawData[2] << 8) | rawData[3];
-
-  /*destination[0] = ((int16_t)rawData[0] << 8) | rawData[1];       // Turn the MSB and LSB into a signed 16-bit value
-  destination[1] = ((int16_t)rawData[4] << 8) | rawData[5];
-  destination[2] = ((int16_t)rawData[2] << 8) | rawData[3];*/
 }
 
 int16_t readTempData()

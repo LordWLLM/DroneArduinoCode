@@ -43,6 +43,7 @@ class Game(ShowBase):
         #self.camera.setPos(0, -150, 60)
         self.camera.setPos(0, -100, 30)
         self.camera.setP(-15)
+        #self.camera.setH(180)
         self.disableMouse()
 
         mainLight = DirectionalLight("main light")
@@ -117,10 +118,6 @@ BAUD_RATE = 115200
 ser_out = serial.Serial(PORT_OUT, BAUD_RATE, timeout=1)
 ser_in = serial.Serial(PORT_IN, BAUD_RATE, timeout=1)
 
-
-ser_out = serial.Serial(PORT_OUT, BAUD_RATE, timeout=1)
-ser_in = serial.Serial(PORT_IN, BAUD_RATE, timeout=1)
-
 def read_from_port(ser, label):
     while True:
         if ser.in_waiting:
@@ -132,7 +129,7 @@ def read_from_port(ser, label):
 threading.Thread(target=read_from_port, args=(ser_out, "OUT"), daemon=True).start()
 threading.Thread(target=read_from_port, args=(ser_in, "IN"), daemon=True).start()
 
-
+game.run()
 
 try:
     while True:
@@ -142,5 +139,3 @@ except KeyboardInterrupt:
     ser_in.close()
     print("ejd.")
 
-
-game.run()
