@@ -5,9 +5,8 @@
 #include <TinyGPSPlus.h>
 #include <BluetoothSerial.h>
 
-/* Assign a unique ID to this sensor at the same time */
 Adafruit_MPU6050 mpu;
-Adafruit_HMC5883_Unified mag = Adafruit_HMC5883_Unified(12345);
+Adafruit_HMC5883_Unified mag;
 
 TinyGPSPlus gps;
 BluetoothSerial SerialBT;
@@ -19,6 +18,7 @@ void intertialAcc();
 void updateVelPos();
 void sendInfo();
 void gyroError();
+
 float MagX, MagY, MagZ;
 float mpuDur, mpuCurrent, mpuPrevious;
 float GQT = 1;
@@ -63,8 +63,12 @@ void displaySensorDetails(void)
 
 void setup(void)
 {
-
     Serial.begin(115200);
+    while (!Serial)
+    {
+        ; // do nothing
+    }
+    Serial.println("Serial connected!");
     SerialBT.begin("ESP32_Test");
     Serial.println("Bluetooth Started");
     Serial.println("HMC5883 Magnetometer Test");
@@ -78,6 +82,7 @@ void setup(void)
             delay(10);
         }
     }
+    Serial.println("mpu started");
 
     /* Initialise the sensor */
     if (!mag.begin())
@@ -87,11 +92,13 @@ void setup(void)
         while (1)
             ;
     }
+    Serial.println("mag started");
 
     /* Display some basic information on this sensor */
     displaySensorDetails();
     gyroError();
     mpuPrevious = micros();
+    delay(10000);
 }
 
 void loop(void)
@@ -233,7 +240,7 @@ void updateSensors()
     GyroX = g.gyro.x - GyroErrorX;
     GyroY = g.gyro.y - GyroErrorY;
     GyroZ = g.gyro.z - GyroErrorZ;
-    mpuCurrent = mpuPrevious;
+    mpuPrevious = mpuCurrent;
     mpuCurrent = micros();
     mpuDur = (mpuCurrent - mpuPrevious) / 1000000.0f;
 }
@@ -257,16 +264,16 @@ void gyroError()
     GyroErrorX = totX / iters;
     GyroErrorY = totY / iters;
     GyroErrorZ = totZ / iters;
-    Serial.print(GyroErrorX);
-    Serial.print("  ");
-    Serial.print(GyroErrorY);
-    Serial.print("  ");
-    Serial.print(GyroErrorZ);
-    Serial.print("  ");
+    Serial.print("GyroErrorX: ");
+    Serial.println(GyroErrorX);
+    Serial.print("GyroErrorY: ");
+    Serial.println(GyroErrorY);
+    Serial.print("GyroErrorZ: ");
+    Serial.println(GyroErrorZ);
     Serial.print(GyroX);
     Serial.print("  ");
     Serial.print(GyroY);
     Serial.print("  ");
     Serial.print(GyroZ);
-    Serial.print("  ");
+    Serial.println("  ");
 }
